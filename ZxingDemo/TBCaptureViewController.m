@@ -127,15 +127,61 @@
     
     // Vibrate
     AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
-    [self cancelScan];
+    [self cancelScan:nil];
 }
 
 #pragma  mark -  TBCaptureViewMaskDelegate
--(void)cancelScan
+-(void)cancelScan:(id)sender
 {
     [_capture stop];
     if (![self.presentedViewController isBeingDismissed]) {
             [self dismissViewControllerAnimated:YES completion:nil];
     }
+}
+
+-(void)pickImageFromPhotoLibrary:(id)sender
+{
+    UIImagePickerController *_pickerController = [UIImagePickerController new];
+    _pickerController.allowsEditing = YES;
+    _pickerController.delegate = self;
+    _pickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    [self presentViewController:_pickerController animated:YES completion:^(){
+        [_capture stop];
+    }];
+}
+
+#pragma mark - UIImagePickerControllerDelegate
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    UIImage *image = [info objectForKey:@"UIImagePickerControllerEditedImage"];
+    [self dismissViewControllerAnimated:YES completion:^{
+        
+        CGImageRef imageToDecode = [image CGImage];  // Given a CGImage in which we are looking for barcodes
+        
+        ZXLuminanceSource *source = [[ZXCGImageLuminanceSource alloc] initWithCGImage:imageToDecode];
+        ZXBinaryBitmap *bitmap = [ZXBinaryBitmap binaryBitmapWithBinarizer:[ZXHybridBinarizer binarizerWithSource:source]];
+        
+        NSError *error = nil;
+        
+        // There are a number of hints we can give to the reader, including
+        // possible formats, allowed lengths, and the string encoding.
+        ZXResult *result = [_capture.reader decode:bitmap
+                                    hints:_capture.hints
+                                    error:&error];
+        if (result) {
+            [_capture.delegate captureResult:_capture result:result];
+        } else {
+            // Use error to determine why we didn't get a result, such as a barcode
+            // not being found, an invalid checksum, or a format inconsistency.
+        }
+    }];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
+{
+    [self dismissViewControllerAnimated:YES completion:^{
+        [_capture start];
+    }];
 }
 @end

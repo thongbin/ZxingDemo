@@ -21,6 +21,8 @@
 
 @interface TBCaptureViewController : UIViewController
 <
+UINavigationControllerDelegate,
+UIImagePickerControllerDelegate,
 ZXCaptureDelegate,
 TBCaptureViewMaskDelegate
 >

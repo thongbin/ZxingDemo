@@ -11,8 +11,10 @@
 @protocol TBCaptureViewMaskDelegate <NSObject>
 
 @required
--(void)cancelScan;
+-(void)cancelScan:(id)sender;
 
+@optional
+-(void)pickImageFromPhotoLibrary:(id)sender;
 @end
 
 @interface TBCaptureViewMask : UIView
@@ -22,4 +24,5 @@
 -(void)startOnceScanEffect;
 
 -(void)startRoundScanEffect;
+
 @end

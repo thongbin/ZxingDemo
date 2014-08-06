@@ -20,6 +20,7 @@
     UIImageView *_barcode_effect_line2;
     
     UIButton *_cancelButton;
+    UIButton *_pickImageButton;
     
 }
 
@@ -63,6 +64,18 @@
         [_cancelButton setBackgroundImage:[UIImage imageNamed:@"barcode_close_btn"] forState:UIControlStateNormal];
         [_cancelButton addTarget:self action:@selector(cancelScanAction:) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:_cancelButton];
+        
+        _pickImageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_pickImageButton setFrame:CGRectMake(0, 0, 89, 30)];
+        [_pickImageButton setCenter:CGPointMake(320/2, self.frame.size.height/25*24 - _pickImageButton.frame.size.height/2)];
+        [_pickImageButton setTitle:@"从相册选" forState:UIControlStateNormal];
+        [_pickImageButton setTitleColor:[UIColor colorWithRed:0.53 green:0.53 blue:0.53 alpha:1] forState:UIControlStateNormal];
+        [_pickImageButton setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
+        [_pickImageButton setTitleEdgeInsets:UIEdgeInsetsMake(5, 5, 5, 5)];
+        [_pickImageButton.titleLabel setFont:[UIFont systemFontOfSize:13.0f]];
+        [_pickImageButton setBackgroundImage:[UIImage imageNamed:@"barcode_btn"] forState:UIControlStateNormal];
+        [_pickImageButton addTarget:self action:@selector(pickImageFromPhotoLibrary:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_pickImageButton];
     }
     return self;
 }
@@ -79,15 +92,28 @@
     [_barcode_effect_line2 removeFromSuperview];
     
     _cancelButton = nil;
-    if ([_delegate respondsToSelector:@selector(cancelScan)]) {
-        [_delegate cancelScan];
+    if ([_delegate respondsToSelector:@selector(cancelScan:)]) {
+        [_delegate cancelScan:sender];
     }
 
+}
+
+-(void)pickImageFromPhotoLibrary:(id)sender
+{
+    if ([_delegate respondsToSelector:@selector(pickImageFromPhotoLibrary:)]) {
+        [_delegate pickImageFromPhotoLibrary:sender];
+    }
 }
 
 #pragma mark - Public Method
 -(void)startOnceScanEffect
 {
+    if (_barcode_effect_line2) {
+        [_barcode_effect_line2 removeFromSuperview];
+        _barcode_effect_line2 = nil;
+        
+    }
+    
     _barcode_effect_line1 = [[UIImageView alloc]initWithFrame:CGRectMake(0.0, 0.0, 214, 55)];
     [_barcode_effect_line1 setImage:[UIImage imageNamed:@"barcode_effect_line1"]];
     [_barcode_effect_line1 setCenter:CGPointMake(self.frame.size.width/2, 130.0)];
@@ -101,6 +127,7 @@
                     }
                      completion:^(BOOL finished){
                          [_barcode_effect_line1 removeFromSuperview];
+                         _barcode_effect_line1 = nil;
                          [self startRoundScanEffect];
                      }];
     
